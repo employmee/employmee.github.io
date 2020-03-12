@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+    .axis text {
+        font: 10px sans-serif;
+    }
+
+    .axis line, .axis path {
+        fill: none;
+        strcnove: #000;
+        shape-rendering: crispEdges;
+    .d3-tip {
+        line-height: 1.5;
+        padding: 8px;
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        border-radius: 0px;
+        text-align: center;
+      }
+    .svg2 text {
+        fill: black;
+        font: 100px sans-serif;
+        font-weight: bold;
+        text-align: center;
+      }
+    }
+</style>
+<html>
+
+    <body>
+        <input id="slider" type="range" min="1" max="20" value="1" step="1"/>
+        <span id="range">22/1/2020</span>
+        
+        <script src="https://d3js.org/d3.v3.min.js"></script>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <script src="https://d3js.org/topojson.v2.min.js"></script>
+        <script src="https://d3js.org/d3.v4.js"></script>
+        <script src="https://d3js.org/d3-time.v1.min.js"></script>
+        <script src="https://d3js.org/d3-time-format.v2.min.js"></script>
+        <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
+        <script src="https://d3js.org/topojson.v1.min.js"></script>
+        <script src="https://github.com/fryn/html5slider/blob/gh-pages/html5slider.js"></script>
+        <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+        <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
+        <script src="https://d3js.org/d3-array.v1.min.js"></script>
+        <script src="https://d3js.org/d3-geo.v1.min.js"></script>
+        <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
+        <script type="text/javascript">
+
+    
+onload = function() {
+  var $ = function(id) { return document.getElementById(id); };
+  $('slider').oninput = function() { $('range').innerHTML = this.value; };
+  $('slider').oninput();
+};
+    </script>
+        <script>
+            //choropleth
+            var attributeArray = []
+
+            var width = 800, height = 400; var margin = {top: 40, right: 45, bottom: 30, left: 40};
+
+            var value;
+
+            var color = d3.scale.threshold()
+              .domain([1,5,10,25,50,70,100,300,500,1000,10000,30000,50000,80000])
+              .range(["#A9A9A9", "#fff2cc", "#ffe699", "#ffd966", "#ffcc33","#ffbf00","#ff9933","#ff8000","#cc6600","#ff6633","#ff4000","#cc3300","#992600","#661a00"]);
+
+            var projection = d3.geoNaturalEarth()
+                .scale(width / 2 / Math.PI)
+                .translate([width / 2, height / 2])
+            var path = d3.geoPath()
+                .projection(projection);
+
+            var svg2 = d3.select("body").append("svg").attr("width", width).attr("height", height);
+            
+            svg2.append("text")
+              .attr("x", width / 2 )
+              .attr("y", height)
+              .style("text-anchor", "middle")
+              .text("Confirmed COVID cases from 1st - 20th Feb");
+
+            d3.json("https://raw.githubusercontent.com/employmee/employmee.github.io/master/ne_50m_admin_0_countries_json.geojson", function(world) {
+              console.log(world)
+
+                d3.csv("https://raw.githubusercontent.com/employmee/employmee.github.io/master/covid-time-series.csv", function(error, cnov) {
+                console.log(error, cnov[0]);
+
+                var jsoncountries = world.features; //store the path in variable for ease
+                    for (var i=0; i<cnov.length; i++) {
+                        var property = {};
+                        var csvCountries = cnov[i];
+                        var csvCode = csvCountries.Country;
+                            for (var a=0; a<jsoncountries.length; a++) {
+                                if (jsoncountries[a].properties.ADMIN == csvCode) {
+                                    for (var k in cnov[i]) {
+                                        if (k != 'ADM0_A3' ) { // lets not add name or id since we already have them
+                                            if (attributeArray.indexOf(k) == -1) {
+                                            attributeArray.push(k);
+                                            }
+                                        jsoncountries[a].properties[k] = parseFloat(csvCountries[k])
+                                    }
+                                }
+                            break;
+                            }
+                        }
+                    };
+                });
+
+                svg2.selectAll("path").data(world.features.filter(function(d) {
+                    return d.properties.ISO_A2;
+                })).enter().append("path")
+                  .attr("class", "county")
+                  .attr("d", path)
+                  .style("fill", function(d) {
+                    return color(d.properties["22-Jan-20"]);
+                });
+
+                d3.selectAll("input").on("change", function change() {
+                    var value = this.value;
+
+                    d3.selectAll("path").style("fill", function(d) {
+                        switch (value) {
+                            case "1":
+                                return color(d.properties["1-Feb-20"]);
+                                break;
+                            case "2":
+                                return color(d.properties["2-Feb-20"]);
+                                break;
+                            case "3":
+                                return color(d.properties["3-Feb-20"]);
+                                break;
+                            case "4":
+                                return color(d.properties["4-Feb-20"]);
+                                break;
+                            case "5":
+                                return color(d.properties["5-Feb-20"]);
+                                break;
+                            case "6":
+                                return color(d.properties["6-Feb-20"]);
+                                break;
+                            case "7":
+                                return color(d.properties["7-Feb-20"]);
+                                break;
+                            case "8":
+                                return color(d.properties["8-Feb-20"]);
+                                break;
+                            case "9":
+                                return color(d.properties["9-Feb-20"]);
+                                break;
+                            case "10":
+                                return color(d.properties["10-Feb-20"]);
+                                break;
+                            case "11":
+                                return color(d.properties["11-Feb-20"]);
+                                break;
+                            case "12":
+                                return color(d.properties["12-Feb-20"]);
+                                break;
+                            case "13":
+                                return color(d.properties["13-Feb-20"]);
+                                break;
+                            case "14":
+                                return color(d.properties["14-Feb-20"]);
+                                break;
+                            case "15":
+                                return color(d.properties["15-Feb-20"]);
+                                break;
+                            case "16":
+                                return color(d.properties["16-Feb-20"]);
+                                break;
+                            case "17":
+                                return color(d.properties["17-Feb-20"]);
+                                break;
+                            case "18":
+                                return color(d.properties["18-Feb-20"]);
+                                break;
+                            case "19":
+                                return color(d.properties["19-Feb-20"]);
+                                break;
+                            case "20":
+                                return color(d.properties["20-Feb-20"]);
+                                break;    
+                        }
+                    });       
+                });  
+
+            });//end of choropleth    
+
+            svg2.append("g")
+              .attr("class", "legendQuant")
+              .attr("transform", "translate(20,20)");
+
+            var legend = d3.legendColor()
+                .labelFormat(d3.format(".0f"))
+                .labels(d3.legendHelpers.thresholdLabels)
+                .scale(color);
+
+            svg2.select(".legendQuant")
+                .call(legend);
+            
+            //var w = 140, h = 400;
+
+            //var key = d3.select("body").append("svg2").attr("id", "key").attr("width", w).attr("height", h);
+
+            
+
+            d3.select(self.frameElement).style("height", height + "px");
+
+        </script>
+
+        <script src="https://d3js.org/d3.v4.js"></script>
+        <script src="https://d3js.org/d3-time.v1.min.js"></script>
+        <script src="https://d3js.org/d3-time-format.v2.min.js"></script>
+        <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+
+        <div id="my_dataviz"></div>
+        <script>
+        // set the dimensions and margins of the graph
+        var margin = {top: 60, right: 230, bottom: 50, left: 50},
+            width = 1000 - margin.left - margin.right,
+            height = 400 - margin.top - margin.bottom;
+
+        // append the svg object to the body of the page
+        var svg = d3.select("#my_dataviz")
+          .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+            .attr("transform",
+                  "translate(" + margin.left + "," + margin.top + ")");
+
+        // Parse the Data
+        d3.csv("https://raw.githubusercontent.com/employmee/employmee.github.io/master/time_total.csv", function(data) {
+          console.log(data);
+
+          //////////
+          // GENERAL //
+          //////////
+
+          // List of groups = header of the csv files
+          var keys = data.columns.slice(1)
+
+          // color palette
+          var color = d3.scaleOrdinal()
+            .domain(keys)
+            .range(d3.schemeSet2);
+
+          //stack the data?
+          var stackedData = d3.stack()
+            .keys(keys)
+            (data)
+
+          var parseDate = d3.timeParse("%Y-%m-%d");
+          data.forEach(function(d) {
+                d.Date = parseDate(d.Date);
+            });
+
+          //////////
+          // AXIS //
+          //////////
+
+          // Add X axis
+          var x = d3.scaleLinear()
+            .domain(d3.extent(data, function(d) { return d.Date; }))
+            .range([ 0, width ]);
+          var xAxis = svg.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%Y-%m-%d")).ticks(10))
+
+          // Add X axis label:
+          svg.append("text")
+              .attr("text-anchor", "end")
+              .attr("x", width)
+              .attr("y", height+40 )
+              .text("Date");
+
+          // Add Y axis label:
+          svg.append("text")
+              .attr("text-anchor", "end")
+              .attr("x", 0)
+              .attr("y", -20 )
+              .text("COVID 2019 world")
+              .attr("text-anchor", "start")
+
+          // Add Y axis
+          var y = d3.scaleLinear()
+            .domain([0, 73500])
+            .range([ height, 0 ]);
+          svg.append("g")
+            .call(d3.axisLeft(y).ticks(5))
+
+
+
+          //////////
+          // BRUSHING AND CHART //
+          //////////
+
+          // Add a clipPath: everything out of this area won't be drawn.
+          var clip = svg.append("defs").append("svg:clipPath")
+              .attr("id", "clip")
+              .append("svg:rect")
+              .attr("width", width )
+              .attr("height", height )
+              .attr("x", 0)
+              .attr("y", 0);
+
+          // Add brushing
+          var brush = d3.brushX()                 // Add the brush feature using the d3.brush function
+              .extent( [ [0,0], [width,height] ] ) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
+              .on("end", updateChart) // Each time the brush selection changes, trigger the 'updateChart' function
+
+          // Create the scatter variable: where both the circles and the brush take place
+          var areaChart = svg.append('g')
+            .attr("clip-path", "url(#clip)")
+
+          // Area generator
+          var area = d3.area()
+            .x(function(d) { return x(d.data.Date); })
+            .y0(function(d) { return y(d[0]); })
+            .y1(function(d) { return y(d[1]); })
+
+          // Show the areas
+          areaChart
+            .selectAll("mylayers")
+            .data(stackedData)
+            .enter()
+            .append("path")
+              .attr("class", function(d) { return "myArea " + d.key })
+              .style("fill", function(d) { return color(d.key); })
+              .attr("d", area)
+
+          // Add the brushing
+          areaChart
+            .append("g")
+              .attr("class", "brush")
+              .call(brush);
+
+          var idleTimeout
+          function idled() { idleTimeout = null; }
+
+          // A function that update the chart for given boundaries
+          function updateChart() {
+
+            extent = d3.event.selection
+
+            // If no selection, back to initial coordinate. Otherwise, update X axis domain
+            if(!extent){
+              if (!idleTimeout) return idleTimeout = setTimeout(idled, 350); // This allows to wait a little bit
+              x.domain(d3.extent(data, function(d) { return d.Date; }))
+            }else{
+              x.domain([ x.invert(extent[0]), x.invert(extent[1]) ])
+              areaChart.select(".brush").call(brush.move, null) // This remove the grey brush area as soon as the selection has been done
+            }
+
+            // Update axis and area position
+            xAxis.transition().duration(1000).call(d3.axisBottom(x).tickFormat(d3.timeFormat("%Y-%m-%d")).ticks(5))
+            areaChart
+              .selectAll("path")
+              .transition().duration(1000)
+              .attr("d", area)
+            }
+
+
+
+            //////////
+            // HIGHLIGHT GROUP //
+            //////////
+
+            // What to do when one group is hovered
+            var highlight = function(d){
+              console.log(d)
+              // reduce opacity of all groups
+              d3.selectAll(".myArea").style("opacity", .1)
+              // expect the one that is hovered
+              d3.select("."+d).style("opacity", 1)
+            }
+
+            // And when it is not hovered anymore
+            var noHighlight = function(d){
+              d3.selectAll(".myArea").style("opacity", 1)
+            }
+
+            //////////
+            // LEGEND //
+            //////////
+
+            // Add one dot in the legend for each name.
+            var size = 20
+            svg.selectAll("myrect")
+              .data(keys)
+              .enter()
+              .append("rect")
+                .attr("x", 400)
+                .attr("y", function(d,i){ return 10 + i*(size+5)}) // 100 is where the first dot appears. 25 is the distance between dots
+                .attr("width", size)
+                .attr("height", size)
+                .style("fill", function(d){ return color(d)})
+                .on("mouseover", highlight)
+                .on("mouseleave", noHighlight)
+
+            // Add one dot in the legend for each name.
+            svg.selectAll("mylabels")
+              .data(keys)
+              .enter()
+              .append("text")
+                .attr("x", 400 + size*1.2)
+                .attr("y", function(d,i){ return 10 + i*(size+5) + (size/2)}) // 100 is where the first dot appears. 25 is the distance between dots
+                .style("fill", function(d){ return color(d)})
+                .text(function(d){ return d})
+                .attr("text-anchor", "left")
+                .style("alignment-baseline", "middle")
+                .on("mouseover", highlight)
+                .on("mouseleave", noHighlight)
+
+        })
+        </script>
+    </body>
+</html>
